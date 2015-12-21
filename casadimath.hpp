@@ -8,6 +8,14 @@
 #ifndef CASADIMATH_HPP
 #define	CASADIMATH_HPP
 
+#include <casadi/casadi.hpp>
+#include <casadi/solvers/rk_integrator.hpp>
+#include <casadi/solvers/collocation_integrator.hpp>
+#include <casadi/interfaces/sundials/cvodes_interface.hpp>
+#include <casadi/core/function/custom_function.hpp>
+
+using namespace casadi;
+
 #include "gutzwiller.hpp"
 
 inline double eps(vector<double>& U, int i, int j, int n, int m) {

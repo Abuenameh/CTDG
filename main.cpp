@@ -51,7 +51,7 @@ using namespace nlopt;
 
 #include "gutzwiller.hpp"
 #include "mathematica.hpp"
-#include "casadi.hpp"
+//#include "casadi.hpp"
 #include "casadimath.hpp"
 #include "orderparameter.hpp"
 
@@ -828,8 +828,8 @@ void build_odes() {
  */
 int main(int argc, char** argv) {
     
-//    build_ode();
-//    return 0;
+    build_ode();
+    return 0;
 
     ptime begin = microsec_clock::local_time();
 
