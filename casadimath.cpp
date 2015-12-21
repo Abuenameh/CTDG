@@ -121,7 +121,7 @@ SX canonical(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
     S += Sj1;
     S += Sj2;
 
-    return S.imag();
+    return S.real();//imag();
 }
 
 SX canonical(SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
