@@ -430,7 +430,7 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
     map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", p));
 //    integrator.setInput(DMatrix(x0), "x0");
 //    integrator.setInput(DMatrix(p), "p");
-    integrator.evaluate();
+//    integrator.evaluate();
 //    integrator.reset();
 //    vector<double> xf;
 ////    double_vector Es(void_alloc);
@@ -442,6 +442,7 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
 ////        cout << (i+1.)/nt * 2 * tau << endl;
 //        output->Es.push_back(Et(vector<DMatrix>{xf, (i+1.)/nt * 2 * tau, tau/scale})[0].toScalar());
 //    }
+    cout << res << endl;
     vector<double> xf = res["xf"].nonzeros();
 
     complex_vector_vector ff(void_alloc);
@@ -588,22 +589,22 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
 //    }
 //    SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", psx), daeOut("ode", ode));
     
-    ExternalFunction ode_func("ode");
+//    ExternalFunction ode_func("ode");
     
-//    chdir("odes");
-//    vector<Function> odes;
-//    odes.push_back(ExternalFunction("odes"));
-//    for (int ei = 0; ei < 7; ei++) {
-//        for (int i = 0; i < L; i++) {
-//            for (int n = 0; n <= nmax; n++) {
-//                string funcname = "ode_" + to_string(ei) + "_" + to_string(i) + "_" + to_string(n);
-//                odes.push_back(ExternalFunction(funcname));
-//            }
-//        }
-//    }
-//    SumFunction sf(odes);
-//    Function ode_func = sf.create();
-//    chdir("..");
+    chdir("odes");
+    vector<Function> odes;
+    odes.push_back(ExternalFunction("odes"));
+    for (int ei = 0; ei < 7; ei++) {
+        for (int i = 0; i < L; i++) {
+            for (int n = 0; n <= nmax; n++) {
+                string funcname = "ode_" + to_string(ei) + "_" + to_string(i) + "_" + to_string(n);
+                odes.push_back(ExternalFunction(funcname));
+            }
+        }
+    }
+    SumFunction sf(odes);
+    Function ode_func = sf.create();
+    chdir("..");
     
     double taui;
     for (;;) {
@@ -827,8 +828,8 @@ void build_odes() {
  */
 int main(int argc, char** argv) {
     
-//    build_ode();
-//    return 0;
+    build_odes();
+    return 0;
 
     ptime begin = microsec_clock::local_time();
 
