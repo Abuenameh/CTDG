@@ -109,12 +109,15 @@ int k1 = mod(i-2);
 int j1 = mod(i-1);
 int j2 = mod(i+1);
 int k2 = mod(i+2);
+if( n < nmax)
+{
 for( int m = 1; m < nmax+1; m++)
 {
 if( n != -1 + m)
 {
 Ej1 += -1. * conj(f[i][1 + n]) * conj(f[j1][-1 + m]) * f[i][n] * f[j1][m] * g(n, m) * J[j1] * eps(dU, i, j1, n, m) * (1 / (eps(U0, n, m)));
 Ej2 += -1. * conj(f[i][1 + n]) * conj(f[j2][-1 + m]) * f[i][n] * f[j2][m] * g(n, m) * J[i] * eps(dU, i, j2, n, m) * (1 / (eps(U0, n, m)));
+}
 }
 }
 E += Ei;
@@ -154,6 +157,8 @@ int k1 = mod(i-2);
 int j1 = mod(i-1);
 int j2 = mod(i+1);
 int k2 = mod(i+2);
+if( n < nmax)
+{
 for( int m = 1; m < nmax+1; m++)
 {
 if( n != -1 + m)
@@ -271,6 +276,7 @@ Ej2k2 += conj(f[i][1 + n]) * conj(f[j2][p]) * conj(f[k2][1 + p]) * f[i][n] * f[j
 }
 }
 }
+}
 E += Ei;
 E += Ej1;
 E += Ej2;
@@ -308,6 +314,8 @@ int k1 = mod(i-2);
 int j1 = mod(i-1);
 int j2 = mod(i+1);
 int k2 = mod(i+2);
+if( n < nmax)
+{
 for( int m = 1; m < nmax+1; m++)
 {
 if( n != -1 + m)
@@ -431,6 +439,7 @@ Ej2k2 += 0.5 * conj(f[i][1 + n]) * conj(f[j2][p]) * conj(f[k2][q]) * f[i][n] * f
 }
 }
 }
+}
 E += Ei;
 E += Ej1;
 E += Ej2;
@@ -468,6 +477,8 @@ int k1 = mod(i-2);
 int j1 = mod(i-1);
 int j2 = mod(i+1);
 int k2 = mod(i+2);
+if( n < nmax)
+{
 for( int m = 1; m < nmax+1; m++)
 {
 if( n != -1 + m)
@@ -594,6 +605,7 @@ Ej2k2 += -0.5 * conj(f[i][1 + n]) * conj(f[j2][p]) * conj(f[k2][q]) * f[i][n] * 
 }
 }
 }
+}
 E += Ei;
 E += Ej1;
 E += Ej2;
@@ -631,6 +643,8 @@ int k1 = mod(i-2);
 int j1 = mod(i-1);
 int j2 = mod(i+1);
 int k2 = mod(i+2);
+if( n < nmax)
+{
 for( int m = 1; m < nmax+1; m++)
 {
 if( n != -1 + m)
@@ -749,6 +763,7 @@ Ej2k2 += -0.5 * conj(f[i][1 + n]) * conj(f[j2][-1 + m]) * conj(f[k2][q]) * f[i][
 if( 2 + -1. * m + p == 0)
 {
 Ej2k2 += 0.5 * conj(f[i][1 + n]) * conj(f[j2][p]) * conj(f[k2][q]) * f[i][n] * f[j2][m] * f[k2][-1 + q] * g(n, m) * g(-1 + q, 1 + p) * J[i] * J[j2] * eps(dU, i, j2, n, m) * (1 / (eps(U0, n, m))) * (1 / (eps(U0, n, m) + eps(U0, -1 + q, 1 + p))) + 0.5 * conj(f[i][1 + n]) * conj(f[j2][p]) * conj(f[k2][q]) * f[i][n] * f[j2][m] * f[k2][-1 + q] * g(n, m) * g(-1 + q, 1 + p) * J[i] * J[j2] * eps(dU, k2, j2, -1 + q, 1 + p) * (1 / (eps(U0, n, m))) * (1 / (eps(U0, n, m) + eps(U0, -1 + q, 1 + p)));
+}
 }
 }
 }
