@@ -22,6 +22,30 @@ inline double eps(vector<double>& U, int i, int j, int n, int m) {
 	return n * U[i] - (m - 1) * U[j];
 }
 
+inline double JW(double W) {
+    return alpha * (W * W) / (Ng * Ng + W * W);
+}
+
+inline double JWij(double Wi, double Wj) {
+    return alpha * (Wi * Wj) / (sqrt(Ng * Ng + Wi * Wi) * sqrt(Ng * Ng + Wj * Wj));
+}
+
+inline double UW(double W) {
+    return -2 * (g24 * g24) / Delta * (Ng * Ng * W * W) / ((Ng * Ng + W * W) * (Ng * Ng + W * W));
+}
+
+inline SX JW(SX W) {
+    return alpha * (W * W) / (Ng * Ng + W * W);
+}
+
+inline SX JWij(SX Wi, SX Wj) {
+    return alpha * (Wi * Wj) / (sqrt(Ng * Ng + Wi * Wi) * sqrt(Ng * Ng + Wj * Wj));
+}
+
+inline SX UW(SX W) {
+    return -2 * (g24 * g24) / Delta * (Ng * Ng * W * W) / ((Ng * Ng + W * W) * (Ng * Ng + W * W));
+}
+
 SX energy(SX& fin, SX& J, SX& U0, SX& dU, double mu);
 SX energy(SX& fin, SX& J, SX& U0, SX& dU, SX& mu);
 SX canonical(SX& fin, SX& J, SX& U0, SX& dU, SX mu);
