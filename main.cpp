@@ -51,7 +51,6 @@ using namespace nlopt;
 
 #include "gutzwiller.hpp"
 #include "mathematica.hpp"
-//#include "casadi.hpp"
 #include "casadimath.hpp"
 #include "orderparameter.hpp"
 
