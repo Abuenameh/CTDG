@@ -27,7 +27,7 @@ const double alpha = 1.1e7;
 
 const double Ng = sqrt(M) * g13;
 
-#include "casadi.hpp"
+#include "casadimath.hpp"
 
 template<class T>
 complex<T> operator~(const complex<T> a) {
