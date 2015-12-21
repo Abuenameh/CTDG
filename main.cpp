@@ -191,6 +191,8 @@ public:
                 res[j] += resi[j];
             }
         }
+        cout << res << endl;
+        exit(0);
         return res;
     }
     
@@ -589,22 +591,22 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
 //    }
 //    SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", psx), daeOut("ode", ode));
     
-//    ExternalFunction ode_func("ode");
+    ExternalFunction ode_func("ode");
     
-    chdir("odes");
-    vector<Function> odes;
-    odes.push_back(ExternalFunction("odes"));
-    for (int ei = 0; ei < 7; ei++) {
-        for (int i = 0; i < L; i++) {
-            for (int n = 0; n <= nmax; n++) {
-                string funcname = "ode_" + to_string(ei) + "_" + to_string(i) + "_" + to_string(n);
-                odes.push_back(ExternalFunction(funcname));
-            }
-        }
-    }
-    SumFunction sf(odes);
-    Function ode_func = sf.create();
-    chdir("..");
+//    chdir("odes");
+//    vector<Function> odes;
+//    odes.push_back(ExternalFunction("odes"));
+//    for (int ei = 0; ei < 7; ei++) {
+//        for (int i = 0; i < L; i++) {
+//            for (int n = 0; n <= nmax; n++) {
+//                string funcname = "ode_" + to_string(ei) + "_" + to_string(i) + "_" + to_string(n);
+//                odes.push_back(ExternalFunction(funcname));
+//            }
+//        }
+//    }
+//    SumFunction sf(odes);
+//    Function ode_func = sf.create();
+//    chdir("..");
     
     double taui;
     for (;;) {
@@ -701,12 +703,12 @@ void build_ode() {
         catch (CasadiException& e) {
         }
         try {
-            ode[2 * j] -= 0.5 * HSidf[2 * j + 1];
+//            ode[2 * j] -= 0.5 * HSidf[2 * j + 1];
         }
         catch (CasadiException& e) {
         }
         try {
-            ode[2 * j + 1] += 0.5 * HSidf[2 * j];
+//            ode[2 * j + 1] += 0.5 * HSidf[2 * j];
         }
         catch (CasadiException& e) {
         }
@@ -828,8 +830,8 @@ void build_odes() {
  */
 int main(int argc, char** argv) {
     
-    build_odes();
-    return 0;
+//    build_ode();
+//    return 0;
 
     ptime begin = microsec_clock::local_time();
 
