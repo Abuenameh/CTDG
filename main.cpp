@@ -823,27 +823,33 @@ void build_odes() {
                 });
 //                SXFunction E0 = SXFunction("E0",{f}, Ef(vector<SX>{f, 0, 1}));
 
-    SX HS = (/*Sdt*/ - complex<SX>(0, 1)*E).real();
-    cout << E << endl;
+    complex<SX> HS = (/*Sdt*/ - complex<SX>(0, 1)*E);
+//    SXFunction HSf("HSr",{f},
+//    {
+//        HS
+//    });
+//    SX HSdf = HSf.gradient()(vector<SX>{f})[0];
     SXFunction HSf("HSr",{f},
     {
-        HS
+        HS.real(), HS.imag()
     });
-    SX HSdf = HSf.gradient()(vector<SX>{f})[0];
+    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);//HSf.gradient()(vector<SX>{f})[0];
     SX ode = SX::sym("ode", 2 * L * dim);
     for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0;
-        ode[2 * j + 1] = 0;
-        try {
-//            ode[2 * j] = HSdf[2 * j];
-        }
-        catch (CasadiException& e) {
-        }
-        try {
-//            ode[2 * j + 1] = HSdf[2 * j + 1];
-        }
-        catch (CasadiException& e) {
-        }
+        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
+        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
+//        ode[2 * j] = 0;
+//        ode[2 * j + 1] = 0;
+//        try {
+////            ode[2 * j] = HSdf[2 * j];
+//        }
+//        catch (CasadiException& e) {
+//        }
+//        try {
+////            ode[2 * j + 1] = HSdf[2 * j + 1];
+//        }
+//        catch (CasadiException& e) {
+//        }
     }
 //                SXFunction HSi("HSi",{f},
 //                {
@@ -880,7 +886,7 @@ void build_odes() {
         S.real(), S.imag()
     });
 //    SX Sdt = St.gradient()(vector<SX>{t})[0];
-    complex<SX> Sdt = complex<SX>(0,0);//complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
+    complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
 //    complex<SX> S = canonical(f, J, U0, dU, mu);
 //    SXFunction St("St",{t},
 //    {
@@ -889,26 +895,28 @@ void build_odes() {
 //    SX Sdt = St.gradient()(vector<SX>{t})[0];
 
 
-    SX HS = (Sdt /*- complex<SX>(0, 1)*E*/).real();
+    complex<SX> HS = (Sdt /*- complex<SX>(0, 1)*E*/);
     SXFunction HSf("HSr",{f},
     {
-        HS
+        HS.real(), HS.imag()
     });
-    SX HSdf = HSf.gradient()(vector<SX>{f})[0];
+    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);//HSf.gradient()(vector<SX>{f})[0];
     SX ode = SX::sym("ode", 2 * L * dim);
     for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0;
-        ode[2 * j + 1] = 0;
-        try {
-            ode[2 * j] = HSdf[2 * j];
-        }
-        catch (CasadiException& e) {
-        }
-        try {
-            ode[2 * j + 1] = HSdf[2 * j + 1];
-        }
-        catch (CasadiException& e) {
-        }
+        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
+        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
+//        ode[2 * j] = 0;
+//        ode[2 * j + 1] = 0;
+//        try {
+//            ode[2 * j] = HSdf[2 * j];
+//        }
+//        catch (CasadiException& e) {
+//        }
+//        try {
+//            ode[2 * j + 1] = HSdf[2 * j + 1];
+//        }
+//        catch (CasadiException& e) {
+//        }
     }
 //    SXFunction HSr("HSr",{f},
 //    {
@@ -943,8 +951,8 @@ void build_odes() {
  */
 int main(int argc, char** argv) {
     
-    build_odes();
-    return 0;
+//    build_odes();
+//    return 0;
 
     ptime begin = microsec_clock::local_time();
 
