@@ -126,7 +126,7 @@ complex<SX> canonical(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
 
 complex<SX> canonical(SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
 
-    complex<SX> S = 0;
+    complex<SX> S = complex<SX>(0, 0);
     for (int i = 0; i < L; i++) {
         for (int n = 0; n <= nmax; n++) {
             S += canonical(i, n, fin, J, U0, dU, mu);
