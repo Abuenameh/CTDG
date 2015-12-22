@@ -138,8 +138,8 @@ struct results {
     vector<vector<complex<double>>> ff;
     string runtime;
 
-//    results(const void_allocator& void_alloc) : Es(void_alloc), J0(void_alloc), b0(void_alloc), bf(void_alloc), f0(void_alloc), ff(void_alloc), runtime(void_alloc) {
-//    }
+    //    results(const void_allocator& void_alloc) : Es(void_alloc), J0(void_alloc), b0(void_alloc), bf(void_alloc), f0(void_alloc), ff(void_alloc), runtime(void_alloc) {
+    //    }
 };
 
 double UWi(double W) {
@@ -160,6 +160,7 @@ struct input {
 
 class SumFunction : public Callback2 {
 public:
+
     SumFunction(vector<Function>& fs_) : fs(fs_) {
         nf = fs.size();
         nin = fs[0].nIn();
@@ -171,15 +172,23 @@ public:
             outSparsity.push_back(fs[0].outputSparsity(i));
         }
     }
-    
-    int nIn() { return nin; }
-    
-    int nOut() { return nout; }
-    
-    Sparsity inputSparsity(int i) { return inSparsity[i]; }
-    
-    Sparsity outputSparsity(int i) { return outSparsity[i]; }
-    
+
+    int nIn() {
+        return nin;
+    }
+
+    int nOut() {
+        return nout;
+    }
+
+    Sparsity inputSparsity(int i) {
+        return inSparsity[i];
+    }
+
+    Sparsity outputSparsity(int i) {
+        return outSparsity[i];
+    }
+
     std::vector<DMatrix> operator()(const std::vector<DMatrix>& arg) {
         vector<DMatrix> res(nout);
         for (int i = 0; i < nout; i++) {
@@ -195,7 +204,7 @@ public:
         exit(0);
         return res;
     }
-    
+
 private:
     vector<Function>& fs;
     int nf;
@@ -260,7 +269,7 @@ void threadfunc(std::string prog, double tauf, queue<input>& inputs, vector<resu
             tau->full = true;
         }
 
-//        results pointRes(void_alloc);
+        //        results pointRes(void_alloc);
         results pointRes;
         pointRes.tau = in.tau;
 
@@ -283,12 +292,12 @@ void threadfunc(std::string prog, double tauf, queue<input>& inputs, vector<resu
             }
             pointRes.ff = ff;
             pointRes.runtime = string(output->runtime.begin(), output->runtime.end());
-//            pointRes.Es = output->Es;
-//            pointRes.b0 = output->b0;
-//            pointRes.bf = output->bf;
-//            pointRes.f0 = output->f0;
-//            pointRes.ff = output->ff;
-//            pointRes.runtime = output->runtime;
+            //            pointRes.Es = output->Es;
+            //            pointRes.b0 = output->b0;
+            //            pointRes.bf = output->bf;
+            //            pointRes.f0 = output->f0;
+            //            pointRes.ff = output->ff;
+            //            pointRes.runtime = output->runtime;
             output->full = false;
             output->cond_full.notify_one();
         }
@@ -321,12 +330,12 @@ worker_input* initialize(double Wi, double Wf, double mu, vector<double>& xi, ma
     }
 
     SX E = energy(f, J, U0, dU, mu).real();
-    
+
     SX g = SX::sym("g", L);
     for (int i = 0; i < L; i++) {
         g[i] = 0;
         for (int n = 0; n < dim; n++) {
-            g[i] += f[2*(i*dim+n)]*f[2*(i*dim+n)] + f[2*(i*dim+n)+1]*f[2*(i*dim+n)+1];
+            g[i] += f[2 * (i * dim + n)] * f[2 * (i * dim + n)] + f[2 * (i * dim + n) + 1] * f[2 * (i * dim + n) + 1];
         }
     }
 
@@ -351,9 +360,9 @@ worker_input* initialize(double Wi, double Wf, double mu, vector<double>& xi, ma
 
     map<string, DMatrix> res = solver(arg);
     vector<double> x0 = res["x"].nonzeros();
-//        vector<double> x0 = xrand;
-//    cout << "x0 = " << ::math(x0) << endl;
-//    cout << "E0 = " << ::math(res["f"].toScalar()) << endl;
+    //        vector<double> x0 = xrand;
+    //    cout << "x0 = " << ::math(x0) << endl;
+    //    cout << "E0 = " << ::math(res["f"].toScalar()) << endl;
 
     vector<complex<double>> x0i(dim);
     for (int i = 0; i < L; i++) {
@@ -366,7 +375,7 @@ worker_input* initialize(double Wi, double Wf, double mu, vector<double>& xi, ma
             x0[2 * (i * dim + n) + 1] /= nrm;
         }
     }
-//    cout << "nlp: " << ::math(nlp(vector<DMatrix>{x0, vector<double>()})[0].toScalar()) << endl;
+    //    cout << "nlp: " << ::math(nlp(vector<DMatrix>{x0, vector<double>()})[0].toScalar()) << endl;
 
     void_allocator void_alloc(segment.get_segment_manager());
     worker_input* input = segment.construct<worker_input>("input")(void_alloc);
@@ -403,9 +412,9 @@ complex<double> dot(complex_vector& v, complex_vector& w) {
 }
 
 void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& p, worker_input* input, worker_output* output, managed_shared_memory& segment) {
-    double tau = p[L+3];
-//    double tauf = tau;//2e-6;
-//    double dt = 0.9e-9*scale;
+    double tau = p[L + 3];
+    //    double tauf = tau;//2e-6;
+    //    double dt = 0.9e-9*scale;
     double dt = input->dt;
     Integrator integrator_rk("integrator", "rk", ode_func, make_dict("t0", 0, "tf", 2 * tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
     Integrator integrator_cvodes("integrator", "cvodes", ode_func, make_dict("t0", 0, "tf", 2 * tau, "exact_jacobian", false, "max_num_steps", 100000));
@@ -426,24 +435,24 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
 
     void_allocator void_alloc(segment.get_segment_manager());
 
-//    map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", {
-//        tau
-//    }));
+    //    map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", {
+    //        tau
+    //    }));
     map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", p));
-//    integrator.setInput(DMatrix(x0), "x0");
-//    integrator.setInput(DMatrix(p), "p");
-//    integrator.evaluate();
-//    integrator.reset();
-//    vector<double> xf;
-////    double_vector Es(void_alloc);
-//    int nt = 50;
-//    output->Es.clear();
-//    for (int i = 0; i < nt; i++) {
-//        integrator.integrate((i+1.)/nt * 2 * tau);
-//        xf = integrator.getOutput("xf").nonzeros();
-////        cout << (i+1.)/nt * 2 * tau << endl;
-//        output->Es.push_back(Et(vector<DMatrix>{xf, (i+1.)/nt * 2 * tau, tau/scale})[0].toScalar());
-//    }
+    //    integrator.setInput(DMatrix(x0), "x0");
+    //    integrator.setInput(DMatrix(p), "p");
+    //    integrator.evaluate();
+    //    integrator.reset();
+    //    vector<double> xf;
+    ////    double_vector Es(void_alloc);
+    //    int nt = 50;
+    //    output->Es.clear();
+    //    for (int i = 0; i < nt; i++) {
+    //        integrator.integrate((i+1.)/nt * 2 * tau);
+    //        xf = integrator.getOutput("xf").nonzeros();
+    ////        cout << (i+1.)/nt * 2 * tau << endl;
+    //        output->Es.push_back(Et(vector<DMatrix>{xf, (i+1.)/nt * 2 * tau, tau/scale})[0].toScalar());
+    //    }
     cout << res << endl;
     vector<double> xf = res["xf"].nonzeros();
 
@@ -509,14 +518,14 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
     double Wf = input->Wf;
     double mu = input->mu;
     double_vector xi = input->xi;
-    
-    vector<double> p(L+4);
+
+    vector<double> p(L + 4);
     for (int i = 0; i < L; i++) {
         p[i] = xi[i];
     }
     p[L] = Wi;
-    p[L+1] = Wf;
-    p[L+2] = mu;
+    p[L + 1] = Wf;
+    p[L + 2] = mu;
 
     SX f = SX::sym("f", 2 * L * dim);
     SX dU = SX::sym("dU", L);
@@ -524,10 +533,10 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
     SX U0 = SX::sym("U0");
     SX t = SX::sym("t");
 
-//    SX tau = SX::sym("tau");
-//    SX tau = p[L+3];
-    SX psx = SX::sym("p", L+4);
-    SX tau = psx[L+3];
+    //    SX tau = SX::sym("tau");
+    //    SX tau = p[L+3];
+    SX psx = SX::sym("p", L + 4);
+    SX tau = psx[L + 3];
 
     SX Wt = if_else(t < tau, Wi + (Wf - Wi) * t / (tau), Wf + (Wi - Wf) * (t - tau) / (tau));
 
@@ -544,55 +553,55 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
     });
     SXFunction E0 = SXFunction("E0",{f}, Ef(vector<SX>{f, 0, 1}));
 
-/////////////////////////////
-//    SX S = canonical(f, J, U0, dU, mu/scale);
-//    SXFunction St("St",{t},
-//    {
-//        S
-//    });
-//    SX Sdt = St.gradient()(vector<SX>{t})[0];
-//
-//
-//    SXFunction HSr("HSr",{f},
-//    {
-//        Sdt
-//    });
-//    SX HSrdf = HSr.gradient()(vector<SX>{f})[0];
-//    SXFunction HSi("HSi",{f},
-//    {
-//        -E
-//    });
-//    SX HSidf = HSi.gradient()(vector<SX>{f})[0];
-//
-//    SX ode = SX::sym("ode", 2 * L * dim);
-//    for (int j = 0; j < L * dim; j++) {
-//        ode[2 * j] = 0;
-//        ode[2 * j + 1] = 0;
-//        try {
-//            ode[2 * j] += 0.5 * HSrdf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j] -= 0.5 * HSidf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j + 1] += 0.5 * HSidf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j + 1] += 0.5 * HSrdf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//    }
-//    SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", psx), daeOut("ode", ode));
-    
-//    ExternalFunction ode_func("ode");
-    
+    /////////////////////////////
+    //    SX S = canonical(f, J, U0, dU, mu/scale);
+    //    SXFunction St("St",{t},
+    //    {
+    //        S
+    //    });
+    //    SX Sdt = St.gradient()(vector<SX>{t})[0];
+    //
+    //
+    //    SXFunction HSr("HSr",{f},
+    //    {
+    //        Sdt
+    //    });
+    //    SX HSrdf = HSr.gradient()(vector<SX>{f})[0];
+    //    SXFunction HSi("HSi",{f},
+    //    {
+    //        -E
+    //    });
+    //    SX HSidf = HSi.gradient()(vector<SX>{f})[0];
+    //
+    //    SX ode = SX::sym("ode", 2 * L * dim);
+    //    for (int j = 0; j < L * dim; j++) {
+    //        ode[2 * j] = 0;
+    //        ode[2 * j + 1] = 0;
+    //        try {
+    //            ode[2 * j] += 0.5 * HSrdf[2 * j];
+    //        }
+    //        catch (CasadiException& e) {
+    //        }
+    //        try {
+    //            ode[2 * j] -= 0.5 * HSidf[2 * j + 1];
+    //        }
+    //        catch (CasadiException& e) {
+    //        }
+    //        try {
+    //            ode[2 * j + 1] += 0.5 * HSidf[2 * j];
+    //        }
+    //        catch (CasadiException& e) {
+    //        }
+    //        try {
+    //            ode[2 * j + 1] += 0.5 * HSrdf[2 * j + 1];
+    //        }
+    //        catch (CasadiException& e) {
+    //        }
+    //    }
+    //    SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", psx), daeOut("ode", ode));
+
+    //    ExternalFunction ode_func("ode");
+
     chdir("odes");
     vector<Function> odes;
     odes.push_back(ExternalFunction("odes"));
@@ -607,7 +616,7 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
     SumFunction sf(odes);
     Function ode_func = sf.create();
     chdir("..");
-    
+
     double taui;
     for (;;) {
         {
@@ -623,7 +632,7 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
             }
         }
 
-        p[L+3] = taui;
+        p[L + 3] = taui;
         try {
             evolve(E0, Ef, ode_func, p, input, output, segment);
         }
@@ -647,11 +656,11 @@ void worker(worker_input* input, worker_tau* tau_in, worker_output* output, mana
 
 void build_ode() {
 
-    SX p = SX::sym("p", L+4);
+    SX p = SX::sym("p", L + 4);
     SX Wi = p[L];
-    SX Wf = p[L+1];
-    SX mu = p[L+2];
-    SX tau = p[L+3];
+    SX Wf = p[L + 1];
+    SX mu = p[L + 2];
+    SX tau = p[L + 3];
 
     SX f = SX::sym("f", 2 * L * dim);
     SX dU = SX::sym("dU", L);
@@ -668,121 +677,32 @@ void build_ode() {
     }
 
     complex<SX> E = energy(f, J, U0, dU, mu);
-    SXFunction Ef = SXFunction("E",{f, t, tau},
-    {
-        E.real()
-    });
-//    SXFunction Ef = SXFunction("E",{f, t, tau},
-//    {
-//        E
-//    });
-//    SXFunction Erf = SXFunction("Er",{f, t, tau},
-//    {
-//        E.real()
-//    });
-//    SXFunction Eif = SXFunction("Ei",{f, t, tau},
-//    {
-//        E.imag()
-//    });
-//    SXFunction Ef = SXFunction("E",{f, t, tau},
-//    {
-//        E.real(), E.imag()
-//    });
-//    SXFunction E0 = SXFunction("E0",{f}, Ef(vector<SX>{f, 0, 1}));
+    //    SXFunction Ef = SXFunction("E",{f, t, tau},
+    //    {
+    //        E.real()
+    //    });
 
     complex<SX> S = canonical(f, J, U0, dU, mu);
     SXFunction St("St",{t},
     {
         S.real(), S.imag()
     });
-//    SX Sdt = St.gradient()(vector<SX>{t})[0];
     complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
-//    SXFunction St("St",{t},
-//    {
-//        S
-//    });
-//    SX Sdt = St.gradient()(vector<SX>{t})[0];
-//    SXFunction Str("Str",{t},
-//    {
-//        S.real()
-//    });
-//    SX Sdtr = Str.gradient()(vector<SX>{t})[0];
-//    SXFunction Sti("Sti",{t},
-//    {
-//        S.imag()
-//    });
-//    SX Sdti = Sti.gradient()(vector<SX>{t})[0];
 
-    SX HS = (Sdt - complex<SX>(0, 1)*E).real();
+    complex<SX> HS = Sdt - complex<SX>(0, 1) * E;
     SXFunction HSf("HSr",{f},
     {
-        HS
+        HS.real(), HS.imag()
     });
-    SX HSdf = HSf.gradient()(vector<SX>{f})[0];
+    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
     SX ode = SX::sym("ode", 2 * L * dim);
     for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0;
-        ode[2 * j + 1] = 0;
-        try {
-            ode[2 * j] = HSdf[2 * j];
-        }
-        catch (CasadiException& e) {
-        }
-        try {
-            ode[2 * j + 1] = HSdf[2 * j + 1];
-        }
-        catch (CasadiException& e) {
-        }
-//        try {
-////            ode[2 * j + 1] += 0.5 * HSidf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j + 1] += 0.5 * HSrdf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
+        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
+        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
     }
 
-//    SXFunction HSr("HSr",{f},
-//    {
-//        Sdt
-//    });
-//    SX HSrdf = HSr.gradient()(vector<SX>{f})[0];
-//    SXFunction HSi("HSi",{f},
-//    {
-//        -E
-//    });
-//    SX HSidf = HSi.gradient()(vector<SX>{f})[0];
-//
-//    SX ode = SX::sym("ode", 2 * L * dim);
-//    for (int j = 0; j < L * dim; j++) {
-//        ode[2 * j] = 0;
-//        ode[2 * j + 1] = 0;
-//        try {
-//            ode[2 * j] += 0.5 * HSrdf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-////            ode[2 * j] -= 0.5 * HSidf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-////            ode[2 * j + 1] += 0.5 * HSidf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j + 1] += 0.5 * HSrdf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//    }
     SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-    
+
     ode_func.generate("ode");
 }
 
@@ -791,11 +711,11 @@ energyfunc energyfuncs[] = {energy1, energy2, energy3, energy4, energy5, energy6
 
 void build_odes() {
 
-    SX p = SX::sym("p", L+4);
+    SX p = SX::sym("p", L + 4);
     SX Wi = p[L];
-    SX Wf = p[L+1];
-    SX mu = p[L+2];
-    SX tau = p[L+3];
+    SX Wf = p[L + 1];
+    SX mu = p[L + 2];
+    SX tau = p[L + 3];
 
     SX f = SX::sym("f", 2 * L * dim);
     SX dU = SX::sym("dU", L);
@@ -810,137 +730,58 @@ void build_odes() {
         J[i] = JWij(Wt * p[i], Wt * p[mod(i + 1)]);
         dU[i] = UW(Wt * p[i]) - U0;
     }
-    
+
     chdir("odes");
     for (int ei = 0; ei < 7; ei++) {
         energyfunc energy = energyfuncs[ei];
         for (int i = 0; i < L; i++) {
             for (int n = 0; n <= nmax; n++) {
                 complex<SX> E = energy(i, n, f, J, U0, dU, mu);
-                SXFunction Ef = SXFunction("E",{f, t, tau},
-                {
-                    E.real()
-                });
-//                SXFunction E0 = SXFunction("E0",{f}, Ef(vector<SX>{f, 0, 1}));
+                //                SXFunction Ef = SXFunction("E",{f, t, tau},
+                //                {
+                //                    E.real()
+                //                });
 
-    complex<SX> HS = (/*Sdt*/ - complex<SX>(0, 1)*E);
-//    SXFunction HSf("HSr",{f},
-//    {
-//        HS
-//    });
-//    SX HSdf = HSf.gradient()(vector<SX>{f})[0];
-    SXFunction HSf("HSr",{f},
-    {
-        HS.real(), HS.imag()
-    });
-    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);//HSf.gradient()(vector<SX>{f})[0];
-    SX ode = SX::sym("ode", 2 * L * dim);
-    for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-//        ode[2 * j] = 0;
-//        ode[2 * j + 1] = 0;
-//        try {
-////            ode[2 * j] = HSdf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-////            ode[2 * j + 1] = HSdf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
-    }
-//                SXFunction HSi("HSi",{f},
-//                {
-//                    -E
-//                });
-//                SX HSidf = HSi.gradient()(vector<SX>{f})[0];
-//
-//                SX ode = SX::sym("ode", 2 * L * dim);
-//                for (int j = 0; j < L * dim; j++) {
-//                    ode[2 * j] = 0;
-//                    ode[2 * j + 1] = 0;
-//                    try {
-//                        ode[2 * j] -= 0.5 * HSidf[2 * j + 1];
-//                    }
-//                    catch (CasadiException& e) {
-//                    }
-//                    try {
-//                        ode[2 * j + 1] += 0.5 * HSidf[2 * j];
-//                    }
-//                    catch (CasadiException& e) {
-//                    }
-//                }
+                complex<SX> HS = -complex<SX>(0, 1) * E;
+                SXFunction HSf("HS",{f},
+                {
+                    HS.real(), HS.imag()
+                });
+                complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
+                SX ode = SX::sym("ode", 2 * L * dim);
+                for (int j = 0; j < L * dim; j++) {
+                    ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
+                    ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
+                }
                 SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-                
+
                 string funcname = "ode_" + to_string(ei) + "_" + to_string(i) + "_" + to_string(n);
                 ode_func.generate(funcname);
             }
         }
     }
-    
+
     complex<SX> S = canonical(f, J, U0, dU, mu);
     SXFunction St("St",{t},
     {
         S.real(), S.imag()
     });
-//    SX Sdt = St.gradient()(vector<SX>{t})[0];
     complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
-//    complex<SX> S = canonical(f, J, U0, dU, mu);
-//    SXFunction St("St",{t},
-//    {
-//        S
-//    });
-//    SX Sdt = St.gradient()(vector<SX>{t})[0];
 
 
-    complex<SX> HS = (Sdt /*- complex<SX>(0, 1)*E*/);
+    complex<SX> HS = Sdt;
     SXFunction HSf("HSr",{f},
     {
         HS.real(), HS.imag()
     });
-    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);//HSf.gradient()(vector<SX>{f})[0];
+    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]); //HSf.gradient()(vector<SX>{f})[0];
     SX ode = SX::sym("ode", 2 * L * dim);
     for (int j = 0; j < L * dim; j++) {
         ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
         ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-//        ode[2 * j] = 0;
-//        ode[2 * j + 1] = 0;
-//        try {
-//            ode[2 * j] = HSdf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j + 1] = HSdf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
     }
-//    SXFunction HSr("HSr",{f},
-//    {
-//        Sdt
-//    });
-//    SX HSrdf = HSr.gradient()(vector<SX>{f})[0];
-//
-//    SX ode = SX::sym("ode", 2 * L * dim);
-//    for (int j = 0; j < L * dim; j++) {
-//        ode[2 * j] = 0;
-//        ode[2 * j + 1] = 0;
-//        try {
-//            ode[2 * j] += 0.5 * HSrdf[2 * j];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//        try {
-//            ode[2 * j + 1] += 0.5 * HSrdf[2 * j + 1];
-//        }
-//        catch (CasadiException& e) {
-//        }
-//    }
     SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-    
+
     ode_func.generate("odes");
 
     chdir("..");
@@ -950,9 +791,9 @@ void build_odes() {
  * 
  */
 int main(int argc, char** argv) {
-    
-//    build_odes();
-//    return 0;
+
+    build_odes();
+    return 0;
 
     ptime begin = microsec_clock::local_time();
 
@@ -960,14 +801,14 @@ int main(int argc, char** argv) {
     random::uniform_real_distribution<> uni(-1, 1);
 
     int seed = lexical_cast<int>(argv[1]);
-    
+
     if (seed != -1) {
 
         double Wi = lexical_cast<double>(argv[2]);
         double Wf = lexical_cast<double>(argv[3]);
 
         double mu = lexical_cast<double>(argv[4]);
-        
+
         double Ui = UWi(Wi);
 
         double D = lexical_cast<double>(argv[5]);
@@ -1055,7 +896,7 @@ int main(int argc, char** argv) {
         managed_shared_memory segment(create_only, "SharedMemory", size);
 
         worker_input* w_input = initialize(Wi, Wf, mui, xi, segment);
-//        return 0;
+        //        return 0;
 
         void_allocator void_alloc(segment.get_segment_manager());
         char_string integrator(intg.begin(), intg.end(), void_alloc);
@@ -1095,8 +936,8 @@ int main(int argc, char** argv) {
         vector<vector<double>> Esres;
         vector<vector<complex<double>>> b0res;
         vector<vector<complex<double>>> bfres;
-//        vector<complex_vector_vector> f0res;
-        vector<vector<vector<complex<double>>>> ffres;
+        //        vector<complex_vector_vector> f0res;
+        vector<vector < vector<complex<double>>>> ffres;
         vector<std::string> runtimeres;
 
         for (results& ires : res) {
@@ -1109,16 +950,16 @@ int main(int argc, char** argv) {
             b0res.push_back(ires.b0);
             bfres.push_back(ires.bf);
             runtimeres.push_back(replace_all_copy(ires.runtime, "\"", "\\\""));
-//            vector<double> Es(ires.Es.begin(), ires.Es.end());
-//            Esres.push_back(Es);
-//            vector<complex<double>> b0(ires.b0.begin(), ires.b0.end());
-//            vector<complex<double>> bf(ires.bf.begin(), ires.bf.end());
-//            b0res.push_back(b0);
-//            bfres.push_back(bf);
-//            f0res.push_back(ires.f0);
+            //            vector<double> Es(ires.Es.begin(), ires.Es.end());
+            //            Esres.push_back(Es);
+            //            vector<complex<double>> b0(ires.b0.begin(), ires.b0.end());
+            //            vector<complex<double>> bf(ires.bf.begin(), ires.bf.end());
+            //            b0res.push_back(b0);
+            //            bfres.push_back(bf);
+            //            f0res.push_back(ires.f0);
             ffres.push_back(ires.ff);
-//            std::string runtime(ires.runtime.begin(), ires.runtime.end());
-//            runtimeres.push_back(replace_all_copy(runtime, "\"", "\\\""));
+            //            std::string runtime(ires.runtime.begin(), ires.runtime.end());
+            //            runtimeres.push_back(replace_all_copy(runtime, "\"", "\\\""));
         }
 
         printMath(os, "taures", resi, taures);
@@ -1131,9 +972,9 @@ int main(int argc, char** argv) {
         printMath(os, "Esres", resi, Esres);
         printMath(os, "b0res", resi, b0res);
         printMath(os, "bfres", resi, bfres);
-            printMath(os, "f0res", resi, w_input->f0);
-//            printMath(os, "f0res", resi, f0res);
-            printMath(os, "ffres", resi, ffres);
+        printMath(os, "f0res", resi, w_input->f0);
+        //            printMath(os, "f0res", resi, f0res);
+        printMath(os, "ffres", resi, ffres);
         printMath(os, "runtime", resi, runtimeres);
 
         ptime end = microsec_clock::local_time();
