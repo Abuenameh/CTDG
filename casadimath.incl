@@ -1,4 +1,4 @@
-SX energy1(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy1(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -33,10 +33,10 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 
-SX energy2(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy2(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -78,10 +78,10 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 
-SX energy3(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy3(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -126,10 +126,10 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 
-SX energy4(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy4(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -283,10 +283,10 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 
-SX energy5(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy5(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -446,10 +446,10 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 
-SX energy6(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy6(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -612,10 +612,10 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 
-SX energy7(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
+complex<SX> energy7(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu)
 {
 vector<vector<complex<SX>>> f(L, vector<complex<SX>>(dim, complex<SX>(0, 0)));
 vector<SX> norm2(L, 0);
@@ -778,6 +778,6 @@ E += Ej2;
 E += Ej1j2;
 E += Ej1k1;
 E += Ej2k2;
-return E.real();
+return E;
 }
 

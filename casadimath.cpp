@@ -26,7 +26,7 @@ complex<SX> operator*(complex<SX> csx, SX sx) {
 
 #include "casadimath.incl"
 
-SX energy(SX& fin, SX& J, SX& U0, SX& dU, double mu) {
+complex<SX> energy(SX& fin, SX& J, SX& U0, SX& dU, double mu) {
     vector<vector<complex < SX>>> f(L, vector<complex < SX >> (dim, complex<SX>(0, 0)));
     vector<SX> norm2(L, 0);
     for (int j = 0; j < L; j++) {
@@ -51,10 +51,10 @@ SX energy(SX& fin, SX& J, SX& U0, SX& dU, double mu) {
     
 #include "casadi.incl"
     
-    return E.real();
+    return E;//E.real();
 }
 
-SX energy(SX& fin, SX& J, SX& U0, SX& dU, SX& mu) {
+complex<SX> energy(SX& fin, SX& J, SX& U0, SX& dU, SX& mu) {
     vector<vector<complex < SX>>> f(L, vector<complex < SX >> (dim, complex<SX>(0, 0)));
     vector<SX> norm2(L, 0);
     for (int j = 0; j < L; j++) {
@@ -79,10 +79,10 @@ SX energy(SX& fin, SX& J, SX& U0, SX& dU, SX& mu) {
     
 #include "casadi.incl"
     
-    return E.real();
+    return E;//E.real();
 }
 
-SX canonical(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
+complex<SX> canonical(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
 
     vector<vector<complex < SX>>> f(L, vector<complex < SX >> (dim, complex<SX>(0, 0)));
     vector<SX> norm2(L, 0);
@@ -121,12 +121,12 @@ SX canonical(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
     S += Sj1;
     S += Sj2;
 
-    return S.imag();
+    return S;//S.imag();
 }
 
-SX canonical(SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
+complex<SX> canonical(SX& fin, SX& J, SX& U0, SX& dU, SX mu) {
 
-    SX S = 0;
+    complex<SX> S = 0;
     for (int i = 0; i < L; i++) {
         for (int n = 0; n <= nmax; n++) {
             S += canonical(i, n, fin, J, U0, dU, mu);
