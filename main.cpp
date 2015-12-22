@@ -677,10 +677,6 @@ void build_ode() {
     }
 
     complex<SX> E = energy(f, J, U0, dU, mu);
-    //    SXFunction Ef = SXFunction("E",{f, t, tau},
-    //    {
-    //        E.real()
-    //    });
 
     complex<SX> S = canonical(f, J, U0, dU, mu);
     SXFunction St("St",{t},
@@ -690,7 +686,7 @@ void build_ode() {
     complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
 
     complex<SX> HS = Sdt - complex<SX>(0, 1) * E;
-    SXFunction HSf("HSr",{f},
+    SXFunction HSf("HS",{f},
     {
         HS.real(), HS.imag()
     });
@@ -737,10 +733,6 @@ void build_odes() {
         for (int i = 0; i < L; i++) {
             for (int n = 0; n <= nmax; n++) {
                 complex<SX> E = energy(i, n, f, J, U0, dU, mu);
-                //                SXFunction Ef = SXFunction("E",{f, t, tau},
-                //                {
-                //                    E.real()
-                //                });
 
                 complex<SX> HS = -complex<SX>(0, 1) * E;
                 SXFunction HSf("HS",{f},
@@ -770,7 +762,7 @@ void build_odes() {
 
 
     complex<SX> HS = Sdt;
-    SXFunction HSf("HSr",{f},
+    SXFunction HSf("HS",{f},
     {
         HS.real(), HS.imag()
     });
