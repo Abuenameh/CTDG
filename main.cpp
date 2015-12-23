@@ -200,8 +200,8 @@ public:
                 res[j] += resi[j];
             }
         }
-        cout << res << endl;
-        exit(0);
+//        cout << res << endl;
+//        exit(0);
         return res;
     }
 
@@ -424,6 +424,8 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
     }
     if (input->integrator == "cvodes") {
         integrator = integrator_cvodes;
+        integrator.setOption("linear_solver", "csparse");
+        integrator.setOption("linear_solver_type", "user_defined");
     }
 
     ptime start_time = microsec_clock::local_time();
@@ -453,7 +455,7 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
     ////        cout << (i+1.)/nt * 2 * tau << endl;
     //        output->Es.push_back(Et(vector<DMatrix>{xf, (i+1.)/nt * 2 * tau, tau/scale})[0].toScalar());
     //    }
-    cout << res << endl;
+//    cout << res << endl;
     vector<double> xf = res["xf"].nonzeros();
 
     complex_vector_vector ff(void_alloc);
@@ -784,8 +786,8 @@ void build_odes() {
  */
 int main(int argc, char** argv) {
 
-    build_odes();
-    return 0;
+//    build_odes();
+//    return 0;
 
     ptime begin = microsec_clock::local_time();
 
