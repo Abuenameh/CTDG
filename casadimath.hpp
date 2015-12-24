@@ -18,6 +18,17 @@ using namespace casadi;
 
 #include "gutzwiller.hpp"
 
+namespace casadi {
+
+    inline bool isnan(SX& sx) {
+        return sx.at(0).isNan();
+    }
+
+    inline bool isinf(SX sx) {
+        return sx.at(0).isInf();
+    }
+}
+
 inline double eps(vector<double>& U, int i, int j, int n, int m) {
 	return n * U[i] - (m - 1) * U[j];
 }
@@ -48,7 +59,11 @@ inline SX UW(SX W) {
 
 complex<SX> energy(SX& fin, SX& J, SX& U0, SX& dU, double mu);
 complex<SX> energy(SX& fin, SX& J, SX& U0, SX& dU, SX& mu);
+complex<SX> energy(int i, SX& fin, SX& J, SX& U0, SX& dU, SX& mu);
+complex<SX> energy(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX& mu);
 complex<SX> canonical(SX& fin, SX& J, SX& U0, SX& dU, SX mu);
+complex<SX> canonical(int i, SX& fin, SX& J, SX& U0, SX& dU, SX mu);
+complex<SX> canonical(int i, int n, SX& fin, SX& J, SX& U0, SX& dU, SX mu);
 
 #include "casadimath.hincl"
 
