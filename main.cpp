@@ -418,14 +418,22 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
     double dt = input->dt;
     Integrator integrator_rk("integrator", "rk", ode_func, make_dict("t0", 0, "tf", 2 * tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
     Integrator integrator_cvodes("integrator", "cvodes", ode_func, make_dict("t0", 0, "tf", 2 * tau, "exact_jacobian", false, "max_num_steps", 100000));
+    Integrator integrator_rk1("integrator", "rk", ode_func, make_dict("t0", 0, "tf", tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
+    Integrator integrator_cvodes1("integrator", "cvodes", ode_func, make_dict("t0", 0, "tf", tau, "exact_jacobian", false, "max_num_steps", 100000));
+    Integrator integrator_rk2("integrator", "rk", ode_func, make_dict("t0", tau, "tf", 2 * tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
+    Integrator integrator_cvodes2("integrator", "cvodes", ode_func, make_dict("t0", tau, "tf", 2 * tau, "exact_jacobian", false, "max_num_steps", 100000));
     Integrator integrator;
+    Integrator integrator1;
+    Integrator integrator2;
     if (input->integrator == "rk") {
         integrator = integrator_rk;
+        integrator1 = integrator_rk1;
+        integrator2 = integrator_rk2;
     }
     if (input->integrator == "cvodes") {
         integrator = integrator_cvodes;
-        integrator.setOption("linear_solver", "csparse");
-        integrator.setOption("linear_solver_type", "user_defined");
+        integrator1 = integrator_cvodes1;
+        integrator2 = integrator_cvodes2;
     }
 
     ptime start_time = microsec_clock::local_time();
@@ -437,26 +445,18 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
 
     void_allocator void_alloc(segment.get_segment_manager());
 
-    //    map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", {
-    //        tau
-    //    }));
-    map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", p));
-    //    integrator.setInput(DMatrix(x0), "x0");
-    //    integrator.setInput(DMatrix(p), "p");
-    //    integrator.evaluate();
-    //    integrator.reset();
-    //    vector<double> xf;
-    ////    double_vector Es(void_alloc);
-    //    int nt = 50;
-    //    output->Es.clear();
-    //    for (int i = 0; i < nt; i++) {
-    //        integrator.integrate((i+1.)/nt * 2 * tau);
-    //        xf = integrator.getOutput("xf").nonzeros();
-    ////        cout << (i+1.)/nt * 2 * tau << endl;
-    //        output->Es.push_back(Et(vector<DMatrix>{xf, (i+1.)/nt * 2 * tau, tau/scale})[0].toScalar());
-    //    }
-    //    cout << res << endl;
-    vector<double> xf = res["xf"].nonzeros();
+    vector<double> xf;
+    bool half = false;
+    if (half) {
+        map<string, DMatrix> res = integrator1(make_map("x0", DMatrix(x0), "p", p));
+        xf = res["xf"].nonzeros();
+        res = integrator2(make_map("x0", DMatrix(xf), "p", p));
+        xf = res["xf"].nonzeros();
+    }
+    else {
+        map<string, DMatrix> res = integrator(make_map("x0", DMatrix(x0), "p", p));
+        /*vector<double>*/ xf = res["xf"].nonzeros();
+    }
 
     complex_vector_vector ff(void_alloc);
     for (int i = 0; i < L; i++) {
@@ -781,311 +781,12 @@ void build_odes() {
     chdir("..");
 }
 
-void build_odes2() {
-
-    SX p = SX::sym("p", L + 4);
-    SX Wi = p[L];
-    SX Wf = p[L + 1];
-    SX mu = p[L + 2];
-    SX tau = p[L + 3];
-
-    SX f = SX::sym("f", 2 * L * dim);
-    SX dU = SX::sym("dU", L);
-    SX J = SX::sym("J", L);
-    SX U0 = SX::sym("U0");
-    SX t = SX::sym("t");
-
-    SX Wt = if_else(t < tau, Wi + (Wf - Wi) * t / (tau), Wf + (Wi - Wf) * (t - tau) / (tau));
-
-    U0 = UW(Wt);
-    for (int i = 0; i < L; i++) {
-        J[i] = JWij(Wt * p[i], Wt * p[mod(i + 1)]);
-        dU[i] = UW(Wt * p[i]) - U0;
-    }
-
-    chdir("odes");
-    for (int ei = 0; ei < 7; ei++) {
-        energyfunc energy = energyfuncs[ei];
-        for (int i = 0; i < L; i++) {
-            for (int n = 0; n <= nmax; n++) {
-                string funcname = "ode_E_" + to_string(ei) + "_" + to_string(i) + "_" + to_string(n);
-
-                complex<SX> E = energy(i, n, f, J, U0, dU, mu);
-
-                complex<SX> HS = -complex<SX>(0, 1) * E;
-                SXFunction HSf("HS",{f},
-                {
-                    HS.real(), HS.imag()
-                });
-                complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
-                SX ode = SX::sym("ode", 2 * L * dim);
-                for (int j = 0; j < L * dim; j++) {
-                    ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-                    ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-                }
-                SXFunction ode_func = SXFunction(funcname, daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-                CodeGenerator gen;
-                gen.add(ode_func);
-                gen.add(ode_func.fullJacobian());
-                gen.generate(funcname);
-//                ode_func.generate(funcname);
-            }
-        }
-    }
-
-    complex<SX> S = canonical(f, J, U0, dU, mu);
-    SXFunction St("St",{t},
-    {
-        S.real(), S.imag()
-    });
-    complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
-
-
-    complex<SX> HS = Sdt;
-    SXFunction HSf("HS",{f},
-    {
-        HS.real(), HS.imag()
-    });
-    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]); //HSf.gradient()(vector<SX>{f})[0];
-    SX ode = SX::sym("ode", 2 * L * dim);
-    for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-    }
-    SXFunction ode_func = SXFunction("ode_S", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-    CodeGenerator gen;
-    gen.add(ode_func);
-    gen.add(ode_func.fullJacobian());
-    gen.generate("ode_S");
-
-//    ode_func.generate("odes");
-
-    chdir("..");
-}
-
-void build_odes3() {
-
-    SX p = SX::sym("p", L + 4);
-    SX Wi = p[L];
-    SX Wf = p[L + 1];
-    SX mu = p[L + 2];
-    SX tau = p[L + 3];
-
-    SX f = SX::sym("f", 2 * L * dim);
-    SX dU = SX::sym("dU", L);
-    SX J = SX::sym("J", L);
-    SX U0 = SX::sym("U0");
-    SX t = SX::sym("t");
-
-    SX Wt = if_else(t < tau, Wi + (Wf - Wi) * t / (tau), Wf + (Wi - Wf) * (t - tau) / (tau));
-
-    U0 = UW(Wt);
-    for (int i = 0; i < L; i++) {
-        J[i] = JWij(Wt * p[i], Wt * p[mod(i + 1)]);
-        dU[i] = UW(Wt * p[i]) - U0;
-    }
-
-    for (int i = 0; i < L; i++) {
-        complex<SX> E = complex<SX>(0, 0);
-        for (int ei = 0; ei < 7; ei++) {
-            energyfunc energy = energyfuncs[ei];
-            for (int n = 0; n <= nmax; n++) {
-                /*complex<SX>*/ E += energy(i, n, f, J, U0, dU, mu);
-            }
-        }
-
-        complex<SX> HS = -complex<SX>(0, 1) * E;
-        SXFunction HSf("HS",{f},
-        {
-            HS.real(), HS.imag()
-        });
-        complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
-        SX ode = SX::sym("ode", 2 * L * dim);
-        for (int j = 0; j < L * dim; j++) {
-            ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-            ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-        }
-        SXFunction ode_func = SXFunction("odeE_" + to_string(i), daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-        CodeGenerator gen;
-        gen.add(ode_func);
-        gen.add(ode_func.fullJacobian());
-        gen.generate("odeE_" + to_string(i));
-    }
-
-    complex<SX> S = canonical(f, J, U0, dU, mu);
-    SXFunction St("St",{t},
-    {
-        S.real(), S.imag()
-    });
-    complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
-
-
-    complex<SX> HS = Sdt;
-    SXFunction HSf("HS",{f},
-    {
-        HS.real(), HS.imag()
-    });
-    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]); //HSf.gradient()(vector<SX>{f})[0];
-    SX ode = SX::sym("ode", 2 * L * dim);
-    for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-    }
-    SXFunction ode_func = SXFunction("odeS", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-    CodeGenerator gen;
-    gen.add(ode_func);
-    gen.add(ode_func.fullJacobian());
-
-    gen.generate("odesS");
-
-}
-
-void build_odei() {
-    
-    int L = 5;
-
-    SX p = SX::sym("p", L + 4);
-    SX Wi = p[L];
-    SX Wf = p[L + 1];
-    SX mu = p[L + 2];
-    SX tau = p[L + 3];
-
-    SX f = SX::sym("f", 2 * L * dim);
-    SX dU = SX::sym("dU", L);
-    SX J = SX::sym("J", L);
-    SX U0 = SX::sym("U0");
-    SX t = SX::sym("t");
-
-    SX Wt = if_else(t < tau, Wi + (Wf - Wi) * t / (tau), Wf + (Wi - Wf) * (t - tau) / (tau));
-
-    U0 = UW(Wt);
-    for (int i = 0; i < L; i++) {
-        J[i] = JWij(Wt * p[i], Wt * p[mod(i + 1)]);
-        dU[i] = UW(Wt * p[i]) - U0;
-    }
-
-    int i = 2;
-    
-    chdir("odes");
-    for (int ei = 0; ei < 7; ei++) {
-        energyfunc energy = energyfuncs[ei];
-//        for (int i = 0; i < L; i++) {
-            for (int n = 0; n <= nmax; n++) {
-                string funcname = "ode_E_" + to_string(ei) + "_" + to_string(n);
-
-                complex<SX> E = energy(i, n, f, J, U0, dU, mu);
-                SXFunction Ef("E_" + to_string(ei) + "_" + to_string(n), {f}, {E.real()});
-
-                complex<SX> HS = -complex<SX>(0, 1) * E;
-                SXFunction HSf("HS",{f},
-                {
-                    HS.real(), HS.imag()
-                });
-                complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
-                SX ode = SX::sym("ode", 2 * L * dim);
-                for (int j = 0; j < L * dim; j++) {
-                    ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-                    ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-                }
-                SXFunction ode_func = SXFunction(funcname, daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-                CodeGenerator gen;
-                gen.add(ode_func);
-                gen.add(ode_func.fullJacobian());
-                gen.generate(funcname);
-//                ode_func.generate(funcname);
-            }
-//        }
-    }
-
-    complex<SX> S = canonical(f, J, U0, dU, mu);
-    SXFunction St("St",{t},
-    {
-        S.real(), S.imag()
-    });
-    complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
-
-
-    complex<SX> HS = Sdt;
-    SXFunction HSf("HS",{f},
-    {
-        HS.real(), HS.imag()
-    });
-    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
-    SX ode = SX::sym("ode", 2 * L * dim);
-    for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-    }
-    SXFunction ode_func = SXFunction("ode_S", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-    CodeGenerator gen;
-    gen.add(ode_func);
-    gen.add(ode_func.fullJacobian());
-    gen.generate("ode_S");
-
-//    ode_func.generate("odes");
-
-    chdir("..");
-}
-
-void build_ode_jac() {
-
-    SX p = SX::sym("p", L + 4);
-    SX Wi = p[L];
-    SX Wf = p[L + 1];
-    SX mu = p[L + 2];
-    SX tau = p[L + 3];
-
-    SX f = SX::sym("f", 2 * L * dim);
-    SX dU = SX::sym("dU", L);
-    SX J = SX::sym("J", L);
-    SX U0 = SX::sym("U0");
-    SX t = SX::sym("t");
-
-    SX Wt = if_else(t < tau, Wi + (Wf - Wi) * t / (tau), Wf + (Wi - Wf) * (t - tau) / (tau));
-
-    U0 = UW(Wt);
-    for (int i = 0; i < L; i++) {
-        J[i] = JWij(Wt * p[i], Wt * p[mod(i + 1)]);
-        dU[i] = UW(Wt * p[i]) - U0;
-    }
-
-    complex<SX> E = energy(f, J, U0, dU, mu);
-
-    complex<SX> S = canonical(f, J, U0, dU, mu);
-    SXFunction St("St",{t},
-    {
-        S.real(), S.imag()
-    });
-    complex<SX> Sdt = complex<SX>(St.gradient(0, 0)(vector<SX>{t})[0], St.gradient(0, 1)(vector<SX>{t})[0]);
-
-    complex<SX> HS = Sdt - complex<SX>(0, 1) * E;
-    SXFunction HSf("HS",{f},
-    {
-        HS.real(), HS.imag()
-    });
-    complex<SX> HSdf = complex<SX>(HSf.gradient(0, 0)(vector<SX>{f})[0], HSf.gradient(0, 1)(vector<SX>{f})[0]);
-    SX ode = SX::sym("ode", 2 * L * dim);
-    for (int j = 0; j < L * dim; j++) {
-        ode[2 * j] = 0.5 * (HSdf.real().elem(2 * j) - HSdf.imag().elem(2 * j + 1));
-        ode[2 * j + 1] = 0.5 * (HSdf.real().elem(2 * j + 1) + HSdf.imag().elem(2 * j));
-    }
-
-    SXFunction ode_func = SXFunction("ode", daeIn("t", t, "x", f, "p", p), daeOut("ode", ode));
-
-    cout << "Generating Jacobian..." << endl;
-    Function jac = ode_func.fullJacobian();
-    cout << "Generated Jacobian." << endl;
-    for (;;);
-    
-    ode_func.generate("ode");
-}
-
 /*
  * 
  */
 int main(int argc, char** argv) {
 
-    build_ode_jac();
+    build_odes();
     return 0;
 
     //    build_odes();
@@ -1242,7 +943,7 @@ int main(int argc, char** argv) {
             Efres.push_back(ires.Ef);
             Qres.push_back(ires.Q);
             pres.push_back(ires.p);
-            Esres.push_back(ires.Es);
+//            Esres.push_back(ires.Es);
             b0res.push_back(ires.b0);
             bfres.push_back(ires.bf);
             runtimeres.push_back(replace_all_copy(ires.runtime, "\"", "\\\""));
