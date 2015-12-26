@@ -416,8 +416,8 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
     //    double tauf = tau;//2e-6;
     //    double dt = 0.9e-9*scale;
     double dt = input->dt;
-    Integrator integrator_rk("integrator", "rk", ode_func, make_dict("t0", 0, "tf", 2 * tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
-    Integrator integrator_cvodes("integrator", "cvodes", ode_func, make_dict("t0", 0, "tf", 2 * tau, "exact_jacobian", false, "max_num_steps", 100000));
+    Integrator integrator_rk("integrator", "rk", ode_func, make_dict("t0", 0, "tf", 1 * tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
+    Integrator integrator_cvodes("integrator", "cvodes", ode_func, make_dict("t0", 0, "tf", 1 * tau, "exact_jacobian", false, "max_num_steps", 100000));
     Integrator integrator_rk1("integrator", "rk", ode_func, make_dict("t0", 0, "tf", tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
     Integrator integrator_cvodes1("integrator", "cvodes", ode_func, make_dict("t0", 0, "tf", tau, "exact_jacobian", false, "max_num_steps", 100000));
     Integrator integrator_rk2("integrator", "rk", ode_func, make_dict("t0", tau, "tf", 2 * tau, "number_of_finite_elements", ceil((2 * tau) / dt)));
@@ -446,7 +446,7 @@ void evolve(SXFunction& E0, SXFunction& Et, Function& ode_func, vector<double>& 
     void_allocator void_alloc(segment.get_segment_manager());
 
     vector<double> xf;
-    bool half = false;
+    bool half = true;
     if (half) {
         map<string, DMatrix> res = integrator1(make_map("x0", DMatrix(x0), "p", p));
         xf = res["xf"].nonzeros();
@@ -786,8 +786,8 @@ void build_odes() {
  */
 int main(int argc, char** argv) {
 
-    build_odes();
-    return 0;
+//    build_odes();
+//    return 0;
 
     //    build_odes();
     //    return 0;
