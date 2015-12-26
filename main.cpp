@@ -221,7 +221,7 @@ boost::mutex problem_mutex;
 boost::random::mt19937 rng;
 boost::random::uniform_real_distribution<> uni(-1, 1);
 
-void threadfunc(std::string prog, double tauf, queue<input>& inputs, vector<results>& res, progress_display& progress, int thread, managed_shared_memory& segment) {
+void threadfunc(std::string prog, double tauf, queue<input>& inputs, vector<results>& res, progress_display& progress, int thread, managed_shared_memory& segment, string shm_name) {
 
     void_allocator void_alloc(segment.get_segment_manager());
 
@@ -234,6 +234,7 @@ void threadfunc(std::string prog, double tauf, queue<input>& inputs, vector<resu
     std::vector<std::string> args;
     args.push_back(prog);
     args.push_back("-1");
+    args.push_back(shm_name);
     args.push_back(tau_name);
     args.push_back(output_name);
 
@@ -876,21 +877,25 @@ int main(int argc, char** argv) {
         os << flush;
 
         cout << "Res: " << resi << endl;
+        
+        string shm_name = "SharedMemory" + to_string(time(NULL));
 
         struct shm_remove {
+            string shm_name;
 
-            shm_remove() {
-                shared_memory_object::remove("SharedMemory");
+            shm_remove(string shm_name_) : shm_name(shm_name_) {
+                shared_memory_object::remove(shm_name.c_str());//("SharedMemory");
             }
 
             ~shm_remove() {
-                shared_memory_object::remove("SharedMemory");
+                shared_memory_object::remove(shm_name.c_str());//("SharedMemory");
             }
-        } remover;
+        } remover(shm_name);
 
         int size = 1000 * (sizeof (worker_input) + numthreads * (sizeof (worker_tau) + sizeof (worker_output))); //2 * (((2 * L * dim + L + 1) + numthreads * (4 * L * dim + 5 * L + 6)) * sizeof (double) +numthreads * 2 * sizeof (ptime)/*sizeof(time_period)*/);
 
-        managed_shared_memory segment(create_only, "SharedMemory", size);
+        managed_shared_memory segment(create_only, shm_name.c_str(), size);
+//        managed_shared_memory segment(create_only, "SharedMemory", size);
 
         worker_input* w_input = initialize(Wi, Wf, mui, xi, segment);
         //        return 0;
@@ -921,7 +926,7 @@ int main(int argc, char** argv) {
 
         thread_group threads;
         for (int i = 0; i < numthreads; i++) {
-            threads.create_thread(bind(&threadfunc, argv[0], tauf, boost::ref(inputs), boost::ref(res), boost::ref(progress), i, boost::ref(segment)));
+            threads.create_thread(bind(&threadfunc, argv[0], tauf, boost::ref(inputs), boost::ref(res), boost::ref(progress), i, boost::ref(segment), shm_name));
         }
         threads.join_all();
 
@@ -984,11 +989,12 @@ int main(int argc, char** argv) {
 
     }
     else {
-        managed_shared_memory segment(open_only, "SharedMemory");
+//        managed_shared_memory segment(open_only, "SharedMemory");
+        managed_shared_memory segment(open_only, argv[2]);
 
         worker_input* input = segment.find<worker_input>("input").first;
-        worker_tau* tau = segment.find<worker_tau>(argv[2]).first;
-        worker_output* output = segment.find<worker_output>(argv[3]).first;
+        worker_tau* tau = segment.find<worker_tau>(argv[3]).first;
+        worker_output* output = segment.find<worker_output>(argv[4]).first;
 
         worker(input, tau, output, segment);
 
